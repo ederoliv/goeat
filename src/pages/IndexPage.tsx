@@ -1,7 +1,7 @@
 export function IndexPage() {
   return (
     <div>
-      <h1>Index</h1>
+      <h1>Aqui vai ser o marketplace!!</h1>
     </div>
   )
 }

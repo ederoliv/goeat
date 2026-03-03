@@ -1,2 +1,10 @@
+
 export function MenuPage() {
-  return <div>MenuPage</div>}
+ 
+
+  return (
+    <div>
+      <h1>Menu</h1>
+    </div>
+  );
+}
