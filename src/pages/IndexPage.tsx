@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, Sparkles, MapPin, Sandwich, Pizza, IceCream, Tag, UtensilsCrossed, Fish, Soup, Cake, Croissant } from 'lucide-react';
+import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, MapPin, Sandwich, Pizza, IceCream, Tag, UtensilsCrossed, Fish, Soup, Cake, Croissant } from 'lucide-react';
 
 interface Category {
   name: string;

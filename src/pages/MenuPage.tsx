@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MapPin, ChevronDown, User, ShoppingBag, Star } from 'lucide-react';
+import { Search, MapPin, Star } from 'lucide-react';
 
 interface Product {
   id: string;
