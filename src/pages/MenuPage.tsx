@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { stores } from '../data/stores';
-import { Search, MapPin, Star } from 'lucide-react';
+import { Search, MapPin, Star, ShoppingBag } from 'lucide-react';
 import { menuData } from '../data/menu';
+import type { Product } from '../data/menu';
 import { Footer } from '../components/Footer';
+import { ProductModal } from '../components/ProductModal';
+import { useCart } from '../context/CartContext';
 
 export function MenuPage() {
   const { publicId } = useParams({ strict: false });
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { items, total, isCartOpen, setIsCartOpen } = useCart();
 
   const store = stores.find(s => s.publicId === publicId) || stores[0];
 
@@ -84,6 +89,7 @@ export function MenuPage() {
                 {category.products.map((product) => (
                   <div 
                     key={product.id} 
+                    onClick={() => setSelectedProduct(product)}
                     className="flex gap-4 p-4 border border-zinc-100 rounded-xl hover:border-zinc-200 hover:shadow-sm transition-all cursor-pointer bg-white group"
                   >
                     <div className="flex-1 flex flex-col justify-between">
@@ -119,6 +125,37 @@ export function MenuPage() {
       {/* Fundo Verde no topo (Acompanha o scroll) */}
       <div className="absolute top-0 left-0 w-full z-0 h-48 bg-[#19766D] border-b-[4px] border-[#A1EE30]"></div>
       
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          store={{
+            id: store.publicId,
+            name: store.name,
+            deliveryFee: 5.00, // Fixed mock fee for now
+            deliveryFeeText: "R$ 5,00"
+          }}
+          isOpen={true}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+
+      {/* Floating Cart Button */}
+      {items.length > 0 && !isCartOpen && (
+        <div className="fixed bottom-4 left-0 right-0 z-40 px-4 flex justify-center pointer-events-none animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="w-full max-w-md bg-[#19766D] text-white font-medium rounded-xl h-14 flex items-center justify-between px-6 shadow-xl hover:bg-[#135c55] transition-colors pointer-events-auto"
+          >
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="w-5 h-5" />
+              <span className="bg-white/20 px-2.5 py-0.5 rounded text-sm">{items.length}</span>
+            </div>
+            <span>Ver sacola</span>
+            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</span>
+          </button>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

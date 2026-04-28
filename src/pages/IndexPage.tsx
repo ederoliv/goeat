@@ -3,9 +3,11 @@ import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, MapPin } fr
 import { categories } from '../data/categories';
 import { stores, type Promo } from '../data/stores';
 import { Footer } from '../components/Footer';
+import { useCart } from '../context/CartContext';
 
 export function IndexPage() {
   const [address, setAddress] = useState<string>("Buscando localização...");
+  const { items, setIsCartOpen } = useCart();
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -103,8 +105,16 @@ export function IndexPage() {
             <button className="hover:text-green-100 transition-colors shrink-0">
               <User className="w-6 h-6" />
             </button>
-            <button className="hover:text-green-100 transition-colors shrink-0">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="hover:text-green-100 transition-colors shrink-0 relative"
+            >
               <ShoppingBag className="w-6 h-6" />
+              {items.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#E5202D] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {items.length}
+                </span>
+              )}
             </button>
           </div>
         </div>
