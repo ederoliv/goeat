@@ -1,27 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, MapPin, Sandwich, Pizza, IceCream, Tag, UtensilsCrossed, Fish, Soup, Cake, Croissant } from 'lucide-react';
-
-interface Category {
-  name: string;
-  icon: React.ElementType;
-}
-
-interface Promo {
-  type: 'present' | 'coupon' | 'free_delivery';
-  text: string;
-}
-
-interface Store {
-  name: string;
-  rating: number;
-  category: string;
-  distance: string;
-  time: string;
-  fee: string;
-  promo?: Promo;
-  image: string;
-  isSuper?: boolean;
-}
+import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, MapPin } from 'lucide-react';
+import { categories } from '../data/categories';
+import { stores, type Promo } from '../data/stores';
+import { Footer } from '../components/Footer';
 
 export function IndexPage() {
   const [address, setAddress] = useState<string>("Buscando localização...");
@@ -54,32 +35,7 @@ export function IndexPage() {
     }
   }, []);
 
-  const categories: Category[] = [
-    { name: "Lanches", icon: Sandwich },
-    { name: "Pizza", icon: Pizza },
-    { name: "Açaí", icon: IceCream },
-    { name: "Promoções", icon: Tag },
-    { name: "Brasileira", icon: UtensilsCrossed },
-    { name: "Japonesa", icon: Fish },
-    { name: "Árabe", icon: Soup },
-    { name: "Doces & Bolos", icon: Cake },
-    { name: "Pastel", icon: Croissant },
-  ];
 
-  const stores: Store[] = [
-    { name: "Menu Lanches", rating: 4.6, category: "Lanches", distance: "10.5 km", time: "70-80 min", fee: "R$ 15,00", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=150&h=150&fit=crop" },
-    { name: "Pizzaria Belsabore", rating: 4.6, category: "Pizza", distance: "7.2 km", time: "40-50 min", fee: "Grátis", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=150&h=150&fit=crop" },
-    { name: "Dona Iza Açaí", rating: 4.8, category: "Açaí", distance: "8.1 km", time: "80-90 min", fee: "R$ 20,00", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1553530666-ba11a7ddbbbd?w=150&h=150&fit=crop", isSuper: true },
-    { name: "Takai Sushi", rating: 4.6, category: "Japonesa", distance: "8.1 km", time: "90-100 min", fee: "R$ 20,00", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=150&h=150&fit=crop" },
-    { name: "Dark Side - Frango Frito", rating: 4.3, category: "Lanches", distance: "8.1 km", time: "60-70 min", fee: "R$ 24,00", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=150&h=150&fit=crop" },
-    { name: "La Bella Delivery", rating: 4.6, category: "Pizza", distance: "6.8 km", time: "40-50 min", fee: "Grátis", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=150&h=150&fit=crop" },
-    { name: "Dona Iza Doceria", rating: 4.8, category: "Doces & Bolos", distance: "7.5 km", time: "50-60 min", fee: "R$ 15,00", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1481391319762-47dcb7295f71?w=150&h=150&fit=crop", isSuper: true },
-    { name: "Pizzaria Cattani", rating: 4.7, category: "Pizza", distance: "6.9 km", time: "40-50 min", fee: "Grátis", promo: { type: 'present', text: 'Presente até R$ 10' }, image: "https://images.unsplash.com/photo-1571066811602-716837d681de?w=150&h=150&fit=crop" },
-    { name: "Pizzaria do Vava", rating: 4.7, category: "Pizza", distance: "6.9 km", time: "40-50 min", fee: "Grátis", promo: { type: 'coupon', text: 'Cupom de R$ 5 disponível' }, image: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=150&h=150&fit=crop" },
-    { name: "Delícias da Rô - Doc...", rating: 4.9, category: "Doces & Bolos", distance: "8.1 km", time: "51-66 min", fee: "R$ 20,99", promo: { type: 'coupon', text: 'Cupom de R$ 5 disponível' }, image: "https://images.unsplash.com/photo-1509482560494-4126f8225994?w=150&h=150&fit=crop", isSuper: true },
-    { name: "Psk Dogs", rating: 4.2, category: "Lanches", distance: "8.8 km", time: "37-52 min", fee: "R$ 19,98", image: "https://images.unsplash.com/photo-1616421575825-7832fb6d0d97?w=150&h=150&fit=crop" },
-    { name: "Coruja Rock Burguer...", rating: 4.6, category: "Lanches", distance: "10.0 km", time: "110-120 min", fee: "R$ 24,00", promo: { type: 'free_delivery', text: 'Entrega grátis a partir de R$ 75' }, image: "https://images.unsplash.com/photo-1594212844574-e39cbcc757c2?w=150&h=150&fit=crop" },
-  ];
 
   const getPromoStyle = (type: Promo['type']) => {
     switch (type) {
@@ -107,7 +63,7 @@ export function IndexPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Navbar */}
       <nav className="bg-[#19766D] text-white py-3 px-6 sticky top-0 z-50">
         <div className="max-w-[1280px] mx-auto flex items-center justify-between">
@@ -154,7 +110,7 @@ export function IndexPage() {
         </div>
       </nav>
 
-      <main className="max-w-[1280px] mx-auto px-6 py-8">
+      <main className="max-w-[1280px] mx-auto px-6 py-8 flex-1 w-full">
         {/* Categories Section */}
         <section className="mb-12">
           <h1 className="text-[22px] font-bold text-[#4F4F4F] mb-6">
@@ -182,14 +138,15 @@ export function IndexPage() {
             <h2 className="text-xl font-bold text-[#4F4F4F] mb-6">Lojas</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {stores.map((store, index) => (
-                <div
-                  key={index}
+              {stores.map((store) => (
+                <a
+                  key={store.publicId}
+                  href={`/menu/${store.slug}/${store.publicId}`}
                   className="bg-white rounded-lg p-4 flex gap-4 hover:shadow-md transition-shadow cursor-pointer relative"
                 >
                   <div className="relative shrink-0">
                     <img
-                      src={store.image}
+                      src={store.logoUrl}
                       alt={store.name}
                       className="w-[84px] h-[84px] object-cover rounded-xl border border-gray-100"
                     />
@@ -228,12 +185,13 @@ export function IndexPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

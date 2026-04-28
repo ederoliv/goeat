@@ -9,55 +9,48 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MenuRouteImport } from './routes/menu'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MenuSlugPublicIdRouteImport } from './routes/menu.$slug.$publicId'
 
-const MenuRoute = MenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MenuSlugPublicIdRoute = MenuSlugPublicIdRouteImport.update({
+  id: '/menu/$slug/$publicId',
+  path: '/menu/$slug/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/menu': typeof MenuRoute
+  '/menu/$slug/$publicId': typeof MenuSlugPublicIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/menu': typeof MenuRoute
+  '/menu/$slug/$publicId': typeof MenuSlugPublicIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/menu': typeof MenuRoute
+  '/menu/$slug/$publicId': typeof MenuSlugPublicIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/menu'
+  fullPaths: '/' | '/menu/$slug/$publicId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/menu'
-  id: '__root__' | '/' | '/menu'
+  to: '/' | '/menu/$slug/$publicId'
+  id: '__root__' | '/' | '/menu/$slug/$publicId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MenuRoute: typeof MenuRoute
+  MenuSlugPublicIdRoute: typeof MenuSlugPublicIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/menu': {
-      id: '/menu'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof MenuRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -65,12 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/menu/$slug/$publicId': {
+      id: '/menu/$slug/$publicId'
+      path: '/menu/$slug/$publicId'
+      fullPath: '/menu/$slug/$publicId'
+      preLoaderRoute: typeof MenuSlugPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MenuRoute: MenuRoute,
+  MenuSlugPublicIdRoute: MenuSlugPublicIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

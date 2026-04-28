@@ -1,55 +1,22 @@
 import { useState } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { stores } from '../data/stores';
 import { Search, MapPin, Star } from 'lucide-react';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: string;
-  image?: string;
-}
-
-interface MenuCategory {
-  id: string;
-  title: string;
-  products: Product[];
-}
+import { menuData } from '../data/menu';
+import { Footer } from '../components/Footer';
 
 export function MenuPage() {
+  const { publicId } = useParams({ strict: false });
   const [searchQuery, setSearchQuery] = useState("");
 
-  const menuData: MenuCategory[] = [
-    {
-      id: "bebidas",
-      title: "Bebidas",
-      products: [
-        { id: "b1", name: "Coca Cola 2L", description: "Refrigerante Coca-Cola sabor original.", price: "R$ 14,00", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=150&h=150&fit=crop" },
-        { id: "b2", name: "Suco Natural de Laranja 500ml", description: "Feito na hora, sem açúcar adicional.", price: "R$ 10,00", image: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=150&h=150&fit=crop" }
-      ]
-    },
-    {
-      id: "xis",
-      title: "Xis",
-      products: [
-        { id: "x1", name: "Xis Salada", description: "Pão, maionese, carne, queijo, alface, tomate, milho, ervilha e ovo.", price: "R$ 25,00", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150&h=150&fit=crop" },
-        { id: "x2", name: "Xis Bacon", description: "Pão, maionese, carne, muito bacon, queijo, alface e ovo.", price: "R$ 30,00", image: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=150&h=150&fit=crop" },
-        { id: "x3", name: "Xis Tudo", description: "Pão, maionese, carne, frango, coração, bacon, calabresa, queijo... o verdadeiro exagero.", price: "R$ 38,00", image: "https://images.unsplash.com/photo-1586816001966-79b736744398?w=150&h=150&fit=crop" }
-      ]
-    },
-    {
-      id: "entradas",
-      title: "Entradas",
-      products: [
-        { id: "e1", name: "Porção de Fritas (Média)", description: "Batatas fritas crocantes com sal e orégano. Acompanha molho da casa.", price: "R$ 22,00", image: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=150&h=150&fit=crop" },
-        { id: "e2", name: "Anéis de Cebola (Onion Rings)", description: "Porção com deliciosos anéis de cebola empanados.", price: "R$ 20,00", image: "https://images.unsplash.com/photo-1639024470081-30d075ebf17d?w=150&h=150&fit=crop" }
-      ]
-    }
-  ];
+  const store = stores.find(s => s.publicId === publicId) || stores[0];
+
+
 
   return (
-    <div className="min-h-screen bg-white font-sans text-[#4F4F4F] relative">
+    <div className="min-h-screen bg-white font-sans text-[#4F4F4F] relative flex flex-col">
       {/* Container Principal do Restaurante */}
-      <div className="max-w-[1020px] mx-auto px-4 pt-4 md:pt-10 z-10 w-full relative">
+      <div className="max-w-[1020px] mx-auto px-4 pt-4 md:pt-10 z-10 w-full relative flex-1">
         
         {/* Banner do Restaurante */}
         <div className="w-full h-48 sm:h-56 md:h-64 rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-100 mt-0">
@@ -65,27 +32,23 @@ export function MenuPage() {
           
           {/* Logo do Restaurante arredondada */}
           <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 sm:border-[6px] border-white bg-black shadow-md overflow-hidden shrink-0 flex items-center justify-center relative">
-             <div className="w-full h-full bg-zinc-900 flex flex-col items-center justify-center text-amber-400 p-2 text-center relative overflow-hidden">
-               <span className="font-bold text-sm sm:text-base tracking-wide z-10 text-white shadow-black drop-shadow-md">Brunello</span>
-               <span className="text-[11px] sm:text-xs text-white z-10">Hamburgueria</span>
-               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=150&h=150&fit=crop')] opacity-30 object-cover blur-[2px]"></div>
-             </div>
+            <img src={store.logoUrl} alt={store.name} className="w-full h-full object-cover" />
           </div>
 
           {/* Dados (Nome, Avaliação, Endereço) */}
           <div className="pt-2 sm:pt-24 pb-4 flex-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-1.5">
-              <h1 className="text-2xl sm:text-[26px] font-extrabold text-[#4F4F4F]">Brunello Hamburgueria</h1>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-[#4F4F4F]">{store.name}</h1>
               <span className="flex items-center text-amber-500 font-bold text-sm sm:text-base">
                 <Star className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current mr-1" />
-                4.6
+                {store.rating.toFixed(1)}
               </span>
             </div>
             <div className="flex items-center justify-center sm:justify-start flex-wrap gap-2 text-sm text-[#4F4F4F]/80">
               <span className="text-red-500 font-bold">Fechado</span>
               <span>•</span>
               <span className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1 text-[#4F4F4F]" /> Caxias do Sul - RS
+                <MapPin className="w-4 h-4 mr-1 text-[#4F4F4F]" /> {store.category} • {store.distance}
               </span>
               <span>•</span>
               <button className="font-bold text-[#19766D] hover:underline">Mais informações</button>
@@ -155,6 +118,8 @@ export function MenuPage() {
       
       {/* Fundo Verde no topo (Acompanha o scroll) */}
       <div className="absolute top-0 left-0 w-full z-0 h-48 bg-[#19766D] border-b-[4px] border-[#A1EE30]"></div>
+      
+      <Footer />
     </div>
   );
 }
