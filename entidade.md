@@ -1,3 +1,5 @@
+> **Aviso:** este arquivo descreve o modelo de uma versão anterior planejada em Java e não reflete a Goeat API atual. A referência vigente é `docs/api-contract.md`.
+
 // ─── RestaurantStatus.java ────────────────────────────────────────────────────
 package br.com.app.domain.enums;
 

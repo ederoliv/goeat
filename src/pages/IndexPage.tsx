@@ -1,13 +1,37 @@
-import { useState, useEffect } from 'react';
-import { Search, ChevronDown, User, ShoppingBag, Star, Ticket, Gift, MapPin } from 'lucide-react';
-import { categories } from '../data/categories';
-import { stores, type Promo } from '../data/stores';
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from '@tanstack/react-router';
+import { Search, ChevronDown, User, ShoppingBag, Star, MapPin, Sandwich, Pizza, Fish, UtensilsCrossed } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { useCart } from '../context/CartContext';
+import { useRequest } from '../hooks/useRequest';
+import { getRestaurants } from '../services/restaurants';
+import { formatCurrency } from '../lib/format';
+
+const cuisineIcons: Record<string, React.ElementType> = {
+  Burgers: Sandwich,
+  Pizza: Pizza,
+  Japanese: Fish,
+};
 
 export function IndexPage() {
   const [address, setAddress] = useState<string>("Buscando localização...");
+  const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const { items, setIsCartOpen } = useCart();
+  const { data: restaurants, loading, error } = useRequest(() => getRestaurants(), []);
+
+  const cuisines = useMemo(
+    () => Array.from(new Set((restaurants ?? []).map(r => r.cuisine))),
+    [restaurants],
+  );
+
+  const visibleRestaurants = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return (restaurants ?? []).filter(r =>
+      (!selectedCuisine || r.cuisine === selectedCuisine) &&
+      (!term || r.name.toLowerCase().includes(term) || r.cuisine.toLowerCase().includes(term)),
+    );
+  }, [restaurants, selectedCuisine, search]);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -39,31 +63,6 @@ export function IndexPage() {
 
 
 
-  const getPromoStyle = (type: Promo['type']) => {
-    switch (type) {
-      case 'present':
-        return 'text-purple-600 bg-purple-50';
-      case 'coupon':
-      case 'free_delivery':
-        return 'text-sky-600 bg-sky-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
-    }
-  };
-
-  const getPromoIcon = (type: Promo['type']) => {
-    switch (type) {
-      case 'present':
-        return <Gift className="w-3.5 h-3.5 mr-1" />;
-      case 'coupon':
-        return <Ticket className="w-3.5 h-3.5 mr-1" />;
-      case 'free_delivery':
-        return <Ticket className="w-3.5 h-3.5 mr-1" />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navbar */}
@@ -89,7 +88,9 @@ export function IndexPage() {
               <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
-                placeholder="Busque por item ou loja"
+                placeholder="Busque por restaurante ou culinária"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-white text-gray-900 rounded-md py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-green-400"
               />
             </div>
@@ -127,15 +128,20 @@ export function IndexPage() {
             Pedir seu delivery no Goeat é rápido e prático! Conheça as categorias
           </h1>
 
-          <div className="flex items-center justify-between gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {categories.map((category, index) => {
-              const Icon = category.icon;
+          <div className="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {cuisines.map((cuisine) => {
+              const Icon = cuisineIcons[cuisine] ?? UtensilsCrossed;
+              const isSelected = selectedCuisine === cuisine;
               return (
-                <button key={index} className="flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group">
-                  <div className="w-24 h-24 rounded-[20px] bg-[#f7f7f8] group-hover:bg-[#e4ebf0] border border-gray-100 transition-colors flex items-center justify-center">
+                <button
+                  key={cuisine}
+                  onClick={() => setSelectedCuisine(isSelected ? null : cuisine)}
+                  className="flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group"
+                >
+                  <div className={`w-24 h-24 rounded-[20px] border transition-colors flex items-center justify-center ${isSelected ? 'bg-[#19766D]/10 border-[#19766D]' : 'bg-[#f7f7f8] group-hover:bg-[#e4ebf0] border-gray-100'}`}>
                     <Icon className="w-10 h-10 text-[#19766D] group-hover:scale-105 transition-transform" />
                   </div>
-                  <span className="text-[15px] font-medium text-[#4F4F4F]">{category.name}</span>
+                  <span className="text-[15px] font-medium text-[#4F4F4F]">{cuisine}</span>
                 </button>
               );
             })}
@@ -147,55 +153,50 @@ export function IndexPage() {
           <div className="max-w-[1280px] mx-auto">
             <h2 className="text-xl font-bold text-[#4F4F4F] mb-6">Lojas</h2>
 
+            {loading && <p className="text-[#4F4F4F]/70">Carregando restaurantes...</p>}
+            {!!error && <p className="text-red-500">Não foi possível carregar os restaurantes. Tente novamente mais tarde.</p>}
+            {!loading && !error && visibleRestaurants.length === 0 && (
+              <p className="text-[#4F4F4F]/70">Nenhum restaurante encontrado.</p>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {stores.map((store) => (
-                <a
-                  key={store.publicId}
-                  href={`/menu/${store.slug}/${store.publicId}`}
+              {visibleRestaurants.map((restaurant) => (
+                <Link
+                  key={restaurant.id}
+                  to="/menu/$restaurantId"
+                  params={{ restaurantId: String(restaurant.id) }}
                   className="bg-white rounded-lg p-4 flex gap-4 hover:shadow-md transition-shadow cursor-pointer relative"
                 >
-                  <div className="relative shrink-0">
-                    <img
-                      src={store.logoUrl}
-                      alt={store.name}
-                      className="w-[84px] h-[84px] object-cover rounded-xl border border-gray-100"
-                    />
-                    {store.isSuper && (
-                      <div className="absolute -top-2 -right-2 bg-red-600 text-white p-1 rounded-full border-2 border-white shadow-sm z-10">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                      </div>
-                    )}
+                  <div className="shrink-0 w-[84px] h-[84px] rounded-xl bg-[#19766D]/10 border border-gray-100 flex items-center justify-center text-3xl font-bold text-[#19766D]">
+                    {restaurant.name.charAt(0)}
                   </div>
 
                   <div className="flex flex-col justify-center flex-1 min-w-0">
-                    <h3 className="font-semibold text-[#4F4F4F] text-base mb-1 truncate" title={store.name}>
-                      {store.name}
+                    <h3 className="font-semibold text-[#4F4F4F] text-base mb-1 truncate" title={restaurant.name}>
+                      {restaurant.name}
                     </h3>
 
                     <div className="flex items-center text-[13px] text-[#4F4F4F]/80 mb-1">
                       <span className="flex items-center text-amber-500 font-medium mr-1.5">
                         <Star className="w-3.5 h-3.5 fill-current mr-0.5" />
-                        {store.rating.toFixed(1)}
+                        {restaurant.rating.toFixed(1)}
                       </span>
-                      <span className="truncate">• {store.category} • {store.distance}</span>
+                      <span className="truncate">• {restaurant.cuisine}</span>
                     </div>
 
                     <div className="flex items-center text-[13px] text-[#4F4F4F]/80 mb-2">
-                      <span>{store.time}</span>
+                      <span>{restaurant.deliveryTimeMinutes} min</span>
                       <span className="mx-1.5">•</span>
-                      <span className={store.fee === 'Grátis' ? 'text-[#19766D] font-medium' : ''}>
-                        {store.fee}
+                      <span className={restaurant.deliveryFee === 0 ? 'text-[#19766D] font-medium' : ''}>
+                        {restaurant.deliveryFee === 0 ? 'Grátis' : formatCurrency(restaurant.deliveryFee)}
                       </span>
                     </div>
 
-                    {store.promo && (
-                      <div className={`flex items-center w-fit text-[11px] font-medium px-2 py-1 rounded-md ${getPromoStyle(store.promo.type)}`}>
-                        {getPromoIcon(store.promo.type)}
-                        {store.promo.text}
-                      </div>
-                    )}
+                    <span className={`w-fit text-[11px] font-medium px-2 py-1 rounded-md ${restaurant.isOpen ? 'text-[#19766D] bg-[#19766D]/10' : 'text-red-600 bg-red-50'}`}>
+                      {restaurant.isOpen ? 'Aberto' : 'Fechado'}
+                    </span>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>

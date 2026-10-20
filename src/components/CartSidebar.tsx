@@ -59,13 +59,6 @@ export function CartSidebar() {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <span className="font-medium text-gray-800">{item.quantity}x {item.product.name}</span>
-                          {item.options.length > 0 && (
-                            <ul className="text-sm text-gray-500 mt-1 space-y-0.5">
-                              {item.options.map(opt => (
-                                <li key={opt.id}>+ {opt.name}</li>
-                              ))}
-                            </ul>
-                          )}
                           {item.observation && (
                             <p className="text-sm text-gray-500 mt-1 italic">"{item.observation}"</p>
                           )}

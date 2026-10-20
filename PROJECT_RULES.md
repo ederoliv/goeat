@@ -19,3 +19,14 @@ Este documento contém as diretrizes e regras de padrões visuais e de design pa
 
 - Sempre que for criar novos componentes visuais, alinhe as cores aos hexadecimais acima. Se for usar classes do Tailwind, utilize classes arbitrárias ou estenda o Tailwind contextualmente (ex: `text-[#4F4F4F]`, `bg-[#19766D]`).
 - Foque em responsividade mantendo classes como `max-w-7xl mx-auto`.
+
+## Organização do Código
+
+- **Rotas**: arquivos em `src/routes` (TanStack Router). Lado do cliente na raiz; painel do restaurante sob `/admin`.
+- **Páginas** em `src/pages`, componentes reutilizáveis em `src/components`, primitivos shadcn em `src/components/ui`.
+- **Chamadas de API** sempre pelo cliente em `src/config/api.ts`; não use `fetch`/`axios` solto nos componentes.
+- **Tipos** devem espelhar as entidades do backend (veja `docs/api-contract.md`, copiado da Goeat API). Valores monetários seguem o contrato da API.
+- **Fonte da verdade da API**: o contrato da Goeat API. Releia-o na API antes de criar ou alterar chamadas; se faltar algo, peça ao backend em vez de contornar.
+- Textos de interface em português do Brasil.
+
+Escopo e roadmap do produto: [PRODUCT.md](./PRODUCT.md).

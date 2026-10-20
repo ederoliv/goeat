@@ -1,12 +1,11 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Product, ProductOption } from '../data/menu';
+import type { MenuItem } from '../types/api';
 
 export interface CartItem {
   id: string; // generated unique id
-  product: Product;
+  product: MenuItem;
   quantity: number;
-  options: ProductOption[];
   observation?: string;
   totalPrice: number;
 }
@@ -53,8 +52,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setStore(storeInfo);
     // Check if identical item exists (same product, same options, same observation)
     const existingItemIndex = items.findIndex(
-      (i) => i.product.id === item.product.id && 
-             JSON.stringify(i.options) === JSON.stringify(item.options) &&
+      (i) => i.product.id === item.product.id &&
              i.observation === item.observation
     );
 
