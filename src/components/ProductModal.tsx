@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { X, Plus, Minus } from 'lucide-react';
-import type { MenuItem } from '../types/api';
+import type { Product } from '../types/api';
 import { formatCurrency } from '../lib/format';
 import type { StoreInfo } from '../context/CartContext';
 import { useCart } from '../context/CartContext';
 
 interface ProductModalProps {
-  product: MenuItem;
+  product: Product;
   store: StoreInfo;
   isOpen: boolean;
   onClose: () => void;
@@ -15,7 +15,6 @@ interface ProductModalProps {
 export function ProductModal({ product, store, isOpen, onClose }: ProductModalProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [observation, setObservation] = useState('');
 
   if (!isOpen) return null;
 
@@ -27,7 +26,6 @@ export function ProductModal({ product, store, isOpen, onClose }: ProductModalPr
       id: Math.random().toString(36).substr(2, 9),
       product,
       quantity,
-      observation,
       totalPrice: itemTotal
     }, store);
     onClose();
@@ -45,6 +43,10 @@ export function ProductModal({ product, store, isOpen, onClose }: ProductModalPr
         >
           <X className="w-5 h-5" />
         </button>
+
+        {product.imageUrl && (
+          <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover bg-gray-100" />
+        )}
 
         {/* Details */}
         <div className="w-full flex flex-col overflow-y-auto">
@@ -69,18 +71,6 @@ export function ProductModal({ product, store, isOpen, onClose }: ProductModalPr
               </div>
             </div>
 
-
-            {/* Observation */}
-            <div className="mb-4">
-              <h3 className="font-semibold text-gray-800 mb-2">Alguma observação?</h3>
-              <textarea 
-                placeholder="Ex: Tirar cebola, maionese à parte..."
-                value={observation}
-                onChange={e => setObservation(e.target.value)}
-                className="w-full border rounded-lg p-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#19766D]"
-                rows={2}
-              />
-            </div>
           </div>
 
           {/* Footer Actions */}

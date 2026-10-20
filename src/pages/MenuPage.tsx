@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { Search, Clock, Star, ShoppingBag } from 'lucide-react';
-import type { MenuItem } from '../types/api';
+import type { Product } from '../types/api';
 import { Footer } from '../components/Footer';
 import { ProductModal } from '../components/ProductModal';
 import { useCart } from '../context/CartContext';
@@ -13,7 +13,7 @@ export function MenuPage() {
   const { restaurantId } = useParams({ from: '/menu/$restaurantId' });
   const id = Number(restaurantId);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { items, total, isCartOpen, setIsCartOpen } = useCart();
 
   const { data: restaurant, loading: loadingRestaurant, error: restaurantError } =
@@ -23,12 +23,15 @@ export function MenuPage() {
 
   const sections = useMemo(() => {
     const term = searchQuery.trim().toLowerCase();
-    const grouped = new Map<string, MenuItem[]>();
-    for (const item of menu ?? []) {
-      if (term && !item.name.toLowerCase().includes(term) && !item.description.toLowerCase().includes(term)) continue;
-      grouped.set(item.category, [...(grouped.get(item.category) ?? []), item]);
-    }
-    return Array.from(grouped, ([title, products]) => ({ title, products }));
+    return [...(menu?.sections ?? [])]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map(section => ({
+        id: section.id,
+        title: section.name,
+        products: section.products.filter(p =>
+          !term || p.name.toLowerCase().includes(term) || p.description.toLowerCase().includes(term)),
+      }))
+      .filter(section => section.products.length > 0);
   }, [menu, searchQuery]);
 
   if (loadingRestaurant) {
@@ -105,7 +108,7 @@ export function MenuPage() {
           )}
 
           {sections.map((section) => (
-            <section key={section.title}>
+            <section key={section.id}>
               {/* Título da Categoria com borda lateral grossa */}
               <h2 className="text-lg font-bold text-[#4F4F4F] mb-6 border-l-[3.5px] border-[#19766D] pl-3.5 leading-none py-0.5">
                 {section.title}
@@ -133,6 +136,11 @@ export function MenuPage() {
                           {!product.isAvailable && <span className="ml-3 text-xs font-medium text-red-500">Indisponível</span>}
                         </div>
                       </div>
+                      {product.imageUrl && (
+                        <div className="w-[120px] h-[120px] shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-black/5">
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
                     </div>
                   );
                 })}

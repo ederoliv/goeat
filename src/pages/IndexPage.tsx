@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Search, ChevronDown, User, ShoppingBag, Star, MapPin, Sandwich, Pizza, Fish, UtensilsCrossed } from 'lucide-react';
+import { Search, ChevronDown, User, ShoppingBag, Star, MapPin, Store, Sandwich, Pizza, Fish, UtensilsCrossed } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useRequest } from '../hooks/useRequest';
 import { getRestaurants } from '../services/restaurants';
 import { formatCurrency } from '../lib/format';
@@ -18,6 +19,7 @@ export function IndexPage() {
   const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const { items, setIsCartOpen } = useCart();
+  const { customer, restaurant, logout } = useAuth();
   const { data: restaurants, loading, error } = useRequest(() => getRestaurants(), []);
 
   const cuisines = useMemo(
@@ -103,9 +105,31 @@ export function IndexPage() {
               <ChevronDown className="w-4 h-4 shrink-0" />
             </button>
 
-            <button className="hover:text-green-100 transition-colors shrink-0">
-              <User className="w-6 h-6" />
-            </button>
+            {restaurant ? (
+              <div className="flex items-center gap-3 shrink-0">
+                <Link to="/dashboard" className="hover:text-green-100 transition-colors flex items-center gap-1" title="Painel do restaurante">
+                  <Store className="w-6 h-6" />
+                  <span className="hidden md:inline max-w-[120px] truncate">Painel</span>
+                </Link>
+                <button onClick={logout} className="hover:text-green-100 transition-colors">Sair</button>
+              </div>
+            ) : customer ? (
+              <div className="flex items-center gap-3 shrink-0">
+                <Link to="/orders" className="hover:text-green-100 transition-colors flex items-center gap-1" title="Meus pedidos">
+                  <User className="w-6 h-6" />
+                  <span className="hidden md:inline max-w-[120px] truncate">{customer.name.split(' ')[0]}</span>
+                </Link>
+                <button onClick={logout} className="hover:text-green-100 transition-colors">Sair</button>
+              </div>
+            ) : (
+              <>
+              <Link to="/login" className="hover:text-green-100 transition-colors shrink-0 flex items-center gap-1">
+                <User className="w-6 h-6" />
+                <span className="hidden md:inline">Entrar</span>
+              </Link>
+              <Link to="/restaurant/login" className="hidden lg:inline text-xs text-white/80 hover:text-white shrink-0">Sou restaurante</Link>
+              </>
+            )}
             <button 
               onClick={() => setIsCartOpen(true)}
               className="hover:text-green-100 transition-colors shrink-0 relative"

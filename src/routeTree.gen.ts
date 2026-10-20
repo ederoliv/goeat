@@ -9,12 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrackTrackingCodeRouteImport } from './routes/track.$trackingCode'
+import { Route as RestaurantRegisterRouteImport } from './routes/restaurant.register'
+import { Route as RestaurantLoginRouteImport } from './routes/restaurant.login'
 import { Route as MenuRestaurantIdRouteImport } from './routes/menu.$restaurantId'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackTrackingCodeRoute = TrackTrackingCodeRouteImport.update({
+  id: '/track/$trackingCode',
+  path: '/track/$trackingCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestaurantRegisterRoute = RestaurantRegisterRouteImport.update({
+  id: '/restaurant/register',
+  path: '/restaurant/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestaurantLoginRoute = RestaurantLoginRouteImport.update({
+  id: '/restaurant/login',
+  path: '/restaurant/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MenuRestaurantIdRoute = MenuRestaurantIdRouteImport.update({
@@ -25,37 +67,142 @@ const MenuRestaurantIdRoute = MenuRestaurantIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/orders': typeof OrdersRoute
+  '/register': typeof RegisterRoute
   '/menu/$restaurantId': typeof MenuRestaurantIdRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/track/$trackingCode': typeof TrackTrackingCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/orders': typeof OrdersRoute
+  '/register': typeof RegisterRoute
   '/menu/$restaurantId': typeof MenuRestaurantIdRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/track/$trackingCode': typeof TrackTrackingCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/orders': typeof OrdersRoute
+  '/register': typeof RegisterRoute
   '/menu/$restaurantId': typeof MenuRestaurantIdRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/track/$trackingCode': typeof TrackTrackingCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/menu/$restaurantId'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/orders'
+    | '/register'
+    | '/menu/$restaurantId'
+    | '/restaurant/login'
+    | '/restaurant/register'
+    | '/track/$trackingCode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/menu/$restaurantId'
-  id: '__root__' | '/' | '/menu/$restaurantId'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/orders'
+    | '/register'
+    | '/menu/$restaurantId'
+    | '/restaurant/login'
+    | '/restaurant/register'
+    | '/track/$trackingCode'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/orders'
+    | '/register'
+    | '/menu/$restaurantId'
+    | '/restaurant/login'
+    | '/restaurant/register'
+    | '/track/$trackingCode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
+  OrdersRoute: typeof OrdersRoute
+  RegisterRoute: typeof RegisterRoute
   MenuRestaurantIdRoute: typeof MenuRestaurantIdRoute
+  RestaurantLoginRoute: typeof RestaurantLoginRoute
+  RestaurantRegisterRoute: typeof RestaurantRegisterRoute
+  TrackTrackingCodeRoute: typeof TrackTrackingCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track/$trackingCode': {
+      id: '/track/$trackingCode'
+      path: '/track/$trackingCode'
+      fullPath: '/track/$trackingCode'
+      preLoaderRoute: typeof TrackTrackingCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurant/register': {
+      id: '/restaurant/register'
+      path: '/restaurant/register'
+      fullPath: '/restaurant/register'
+      preLoaderRoute: typeof RestaurantRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurant/login': {
+      id: '/restaurant/login'
+      path: '/restaurant/login'
+      fullPath: '/restaurant/login'
+      preLoaderRoute: typeof RestaurantLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/menu/$restaurantId': {
@@ -70,7 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
+  OrdersRoute: OrdersRoute,
+  RegisterRoute: RegisterRoute,
   MenuRestaurantIdRoute: MenuRestaurantIdRoute,
+  RestaurantLoginRoute: RestaurantLoginRoute,
+  RestaurantRegisterRoute: RestaurantRegisterRoute,
+  TrackTrackingCodeRoute: TrackTrackingCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

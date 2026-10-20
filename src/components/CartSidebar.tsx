@@ -1,8 +1,63 @@
+import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { X, Trash2, Edit2, Ticket, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { createOrder } from '../services/orders';
+import { getErrorMessage } from '../lib/errors';
+import { formatCurrency } from '../lib/format';
+import { fulfillmentLabels, paymentLabels } from '../lib/labels';
+import type { FulfillmentType, Order, PaymentMethod } from '../types/api';
+
+const inputClass =
+  'w-full border rounded-lg p-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#19766D]';
 
 export function CartSidebar() {
-  const { items, store, removeItem, subtotal, total, isCartOpen, setIsCartOpen } = useCart();
+  const { items, store, removeItem, clearCart, subtotal, isCartOpen, setIsCartOpen } = useCart();
+  const { customer } = useAuth();
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('Delivery');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Pix');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+
+  const isDelivery = fulfillmentType === 'Delivery';
+  const deliveryFee = isDelivery ? store?.deliveryFee ?? 0 : 0;
+  const total = subtotal + deliveryFee;
+  const canSubmit =
+    (!isDelivery || deliveryAddress.trim().length >= 5) &&
+    (customer !== null || (guestName.trim().length >= 2 && guestPhone.trim().length >= 8));
+
+  const handleCheckout = async () => {
+    if (!store) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const order = await createOrder({
+        restaurantId: Number(store.id),
+        fulfillmentType,
+        paymentMethod,
+        ...(isDelivery && { deliveryAddress: deliveryAddress.trim() }),
+        ...(!customer && { customerName: guestName.trim(), customerPhone: guestPhone.trim() }),
+        items: items.map(item => ({ productId: item.product.id, quantity: item.quantity })),
+      });
+      clearCart();
+      setDeliveryAddress('');
+      setPlacedOrder(order);
+    } catch (e) {
+      setError(getErrorMessage(e, 'Não foi possível finalizar o pedido.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const closeCart = () => {
+    setIsCartOpen(false);
+    setPlacedOrder(null);
+  };
 
   if (!isCartOpen && items.length === 0) return null;
 
@@ -12,7 +67,7 @@ export function CartSidebar() {
       {isCartOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
-          onClick={() => setIsCartOpen(false)}
+          onClick={closeCart}
         />
       )}
 
@@ -24,7 +79,7 @@ export function CartSidebar() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+            <button onClick={closeCart} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
               <X className="w-5 h-5 text-gray-500" />
             </button>
             <h2 className="font-semibold text-gray-800">Seu pedido em</h2>
@@ -45,7 +100,23 @@ export function CartSidebar() {
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-gray-500">
             <ShoppingBag className="w-16 h-16 mb-4 opacity-20" />
-            <p>Seu carrinho está vazio.</p>
+            {placedOrder ? (
+              <div className="text-center space-y-2">
+                <p className="font-semibold text-[#19766D]">Pedido #{placedOrder.id} enviado!</p>
+                <p className="text-sm">Total: {formatCurrency(placedOrder.total)}</p>
+                <Link
+                  to="/track/$trackingCode"
+                  params={{ trackingCode: placedOrder.trackingCode }}
+                  onClick={closeCart}
+                  className="text-sm font-medium text-[#19766D] hover:underline block"
+                >
+                  Acompanhar pedido
+                </Link>
+                <p className="text-xs text-gray-500">Guarde o link de acompanhamento, principalmente se pediu sem conta.</p>
+              </div>
+            ) : (
+              <p>Seu carrinho está vazio.</p>
+            )}
           </div>
         ) : (
           <>
@@ -59,9 +130,6 @@ export function CartSidebar() {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <span className="font-medium text-gray-800">{item.quantity}x {item.product.name}</span>
-                          {item.observation && (
-                            <p className="text-sm text-gray-500 mt-1 italic">"{item.observation}"</p>
-                          )}
                         </div>
                         <span className="font-medium text-gray-800">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalPrice)}
@@ -99,22 +167,78 @@ export function CartSidebar() {
             </div>
 
             {/* Checkout Footer */}
-            <div className="bg-white border-t p-4 space-y-3">
-              <div className="flex justify-between text-gray-600 text-sm">
-                <span>Subtotal</span>
-                <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600 text-sm">
-                <span>Taxa de entrega</span>
-                <span className="text-green-600">{store?.deliveryFee === 0 ? 'Grátis' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(store?.deliveryFee || 0)}</span>
-              </div>
-              <div className="flex justify-between text-gray-900 font-bold text-lg pt-2 border-t">
-                <span>Total</span>
-                <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</span>
+            <div className="bg-white border-t p-4 space-y-3 max-h-[55vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(fulfillmentLabels) as FulfillmentType[]).map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setFulfillmentType(type)}
+                    className={`rounded-lg border py-2 text-sm font-medium transition-colors ${fulfillmentType === type ? 'border-[#19766D] bg-[#19766D]/10 text-[#19766D]' : 'text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    {fulfillmentLabels[type]}
+                  </button>
+                ))}
               </div>
 
-              <button className="w-full bg-[#E5202D] hover:bg-[#D41C28] text-white font-medium rounded-lg h-12 flex items-center justify-center transition-colors shadow-sm mt-4">
-                Escolher forma de pagamento
+              {isDelivery && (
+                <textarea
+                  value={deliveryAddress}
+                  onChange={e => setDeliveryAddress(e.target.value)}
+                  placeholder="Endereço de entrega (rua, número, bairro)"
+                  rows={2}
+                  maxLength={300}
+                  className={inputClass}
+                />
+              )}
+
+              {!customer && (
+                <div className="space-y-2">
+                  <input className={inputClass} placeholder="Seu nome" value={guestName} maxLength={150}
+                    onChange={e => setGuestName(e.target.value)} />
+                  <input className={inputClass} placeholder="Seu telefone" value={guestPhone} maxLength={30}
+                    onChange={e => setGuestPhone(e.target.value)} />
+                  <p className="text-xs text-gray-500">
+                    Pedindo sem conta. <Link to="/login" onClick={closeCart} className="text-[#19766D] font-medium hover:underline">Entrar</Link> para guardar seu histórico.
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Forma de pagamento (paga na entrega/retirada)</label>
+                <select
+                  value={paymentMethod}
+                  onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className={inputClass}
+                >
+                  {(Object.keys(paymentLabels) as PaymentMethod[]).map(method => (
+                    <option key={method} value={method}>{paymentLabels[method]}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Subtotal</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {isDelivery && (
+                <div className="flex justify-between text-gray-600 text-sm">
+                  <span>Taxa de entrega</span>
+                  <span className="text-green-600">{deliveryFee === 0 ? 'Grátis' : formatCurrency(deliveryFee)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-900 font-bold text-lg pt-2 border-t">
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
+              </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <button
+                onClick={handleCheckout}
+                disabled={submitting || !canSubmit}
+                className="w-full bg-[#E5202D] hover:bg-[#D41C28] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg h-12 flex items-center justify-center transition-colors shadow-sm"
+              >
+                {submitting ? 'Enviando...' : 'Finalizar pedido'}
               </button>
             </div>
           </>

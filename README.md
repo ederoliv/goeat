@@ -23,12 +23,13 @@ Existem dois lados na plataforma:
 
 O backend é a **Goeat API** (ASP.NET Core / .NET 10, monólito modular, PostgreSQL), em repositório separado (localmente em `C:\Users\Eder\source\repos\Goeat API`). O contrato com o front é `docs/api-contract.md`, cópia do `docs/api-contract.md` da API; as rotas em OpenAPI estão em `docs/openapi.json`.
 
-A API é a fonte da verdade. Antes de criar ou alterar chamadas, tipos ou rotas no front, releia o contrato original na API e atualize a cópia. Hoje o front ainda usa dados mockados em `src/data`.
+A API é a fonte da verdade. Antes de criar ou alterar chamadas, tipos ou rotas no front, releia o contrato original na API e atualize a cópia. Restaurantes, cardápio, cadastro/login (JWT) e pedidos já consomem a API real (`src/services`).
 
 ## Decisões atuais
 
-- Autenticação via JWT.
+- Autenticação via JWT, com dois perfis (`customer` e `restaurant`) e logins separados.
 - Sem logística na plataforma: a entrega é feita por entregadores do próprio restaurante, sem rastreamento.
+- Pedidos podem ser feitos sem conta (o cliente guarda o link `/track/<código>`).
 - Sem pagamento online: o cliente escolhe crédito, débito, Pix ou dinheiro e paga na maquininha do estabelecimento ou do motoboy.
 - O cliente escolhe retirada no local ou entrega no endereço cadastrado.
 
@@ -56,10 +57,12 @@ src/
   components/   componentes de UI (CartSidebar, ProductModal, Footer, ui/ do shadcn)
   config/       configuração (cliente axios)
   context/      estado global (CartContext)
-  data/         dados mockados (stores, menu, categories); serão trocados pela API
+  services/     chamadas à API (restaurants, auth, orders)
+  types/        tipos do contrato da API (api.ts)
+  hooks/        useRequest
   layout/       Navbar
   pages/        telas (IndexPage, MenuPage)
-  routes/       rotas do TanStack Router (/, /menu/$slug/$publicId)
+  routes/       rotas do TanStack Router (/, /menu/$restaurantId, /login, /register, /restaurant/login, /restaurant/register, /dashboard, /orders, /track/$trackingCode)
 ```
 
 ## Convenções

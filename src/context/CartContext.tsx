@@ -1,12 +1,11 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { MenuItem } from '../types/api';
+import type { Product } from '../types/api';
 
 export interface CartItem {
   id: string; // generated unique id
-  product: MenuItem;
+  product: Product;
   quantity: number;
-  observation?: string;
   totalPrice: number;
 }
 
@@ -50,10 +49,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     setStore(storeInfo);
-    // Check if identical item exists (same product, same options, same observation)
+    // Merge with the existing line for the same product
     const existingItemIndex = items.findIndex(
-      (i) => i.product.id === item.product.id &&
-             i.observation === item.observation
+      (i) => i.product.id === item.product.id
     );
 
     if (existingItemIndex > -1) {

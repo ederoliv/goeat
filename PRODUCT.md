@@ -82,15 +82,15 @@ Pontos de atenção: valores monetários em centavos (inteiro); `Order` guarda c
 - [x] Footer, deploy na Vercel
 
 ### Fase 1: Backend e dados reais
-- [x] Backend criado (Goeat API, .NET); contrato em `docs/api-contract.md`. Hoje só existem `GET /restaurants` e `GET /restaurants/{id}/menu`, com dados mockados
-- [ ] Endpoints públicos: cidades, categorias, restaurantes, cardápio
-- [ ] Trocar os mocks de `src/data` por chamadas via `src/config/api.ts`
-- [ ] Filtros e busca na home; status aberto/fechado calculado por `BusinessHours`
+- [x] Backend criado (Goeat API, .NET); contrato em `docs/api-contract.md`
+- [x] Restaurantes e cardápio (menu com seções e produtos) consumidos da API; cidades e categorias ainda não existem na API
+- [x] Mocks de `src/data` removidos
+- [x] Filtro por culinária e busca na home; aberto/fechado vem de `isOpen`
 
 ### Fase 2: Autenticação
-- [ ] Cadastro/login de clientes (JWT)
+- [x] Cadastro/login de clientes (JWT)
 - [ ] Cadastro/login de restaurantes (JWT)
-- [ ] Interceptor no axios para enviar o token e tratar 401
+- [x] Interceptor no axios envia o token; 401 limpa a sessão (sem refresh token na API)
 - [ ] Rotas protegidas por papel no front (`beforeLoad` do TanStack Router)
 
 ### Fase 3: Painel do restaurante
@@ -102,7 +102,7 @@ Pontos de atenção: valores monetários em centavos (inteiro); `Order` guarda c
 ### Fase 4: Pedido e checkout do cliente
 - [ ] Endereços do cliente (CRUD)
 - [ ] Checkout com escolha retirada/entrega, endereço (só na entrega) e forma de pagamento (crédito, débito, Pix, dinheiro)
-- [ ] Criação de pedido e histórico
+- [x] Criação de pedido (`POST /orders`, endereço em texto livre) e histórico (`/orders`)
 - [ ] Gestão de pedidos no painel do restaurante
 
 ### Fase 5 (futuro): Pagamentos online
@@ -118,3 +118,11 @@ Pontos de atenção: valores monetários em centavos (inteiro); `Order` guarda c
 - Armazenamento de imagens (S3, Cloudinary...)
 - JWT: onde guardar o token no front (memória + refresh token em cookie httpOnly é o mais seguro) e tempo de expiração
 - Gateway de pagamento, quando os pagamentos online entrarem no escopo
+
+## Estado atual frente à API
+
+Implementado no front: login e cadastro de cliente e de restaurante (`/login`, `/register`, `/restaurant/login`, `/restaurant/register`), pedido com ou sem conta (entrega ou retirada, pagamento Dinheiro/Crédito/Débito/Pix registrado, sem cobrança), acompanhamento por código (`/track/<código>`), histórico do cliente (`/orders`) e painel do restaurante (`/dashboard`): pedidos recebidos com filtro por status, CRUD de seções e produtos, disponibilidade, perfil e abrir/fechar a loja.
+
+## Lacunas entre o produto e a API atual
+
+A API ainda não suporta, e portanto o front não implementa: alterar o status do pedido (o restaurante só vê os pedidos, que ficam em `Pending`), endereços salvos do cliente (o endereço é texto livre por pedido), observações por item, horários de funcionamento, cidades/categorias, imagem/endereço do restaurante, upload de imagens (só URL), troco para pagamento em dinheiro, refresh token e criação do cardápio dos restaurantes de demonstração (ids 1 a 4 não têm login).
