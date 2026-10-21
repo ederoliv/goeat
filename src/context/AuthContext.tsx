@@ -19,6 +19,7 @@ interface AuthContextData {
   loginRestaurant: (body: LoginRequest) => Promise<void>;
   registerRestaurant: (body: RestaurantRegisterRequest) => Promise<void>;
   setRestaurant: (restaurant: RestaurantAccount) => void;
+  setCustomer: (customer: Customer) => void;
   logout: () => void;
 }
 
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ role, customer, restaurant, loading, login, register, loginRestaurant, registerRestaurant, setRestaurant, logout }}
+      value={{ role, customer, restaurant, loading, login, register, loginRestaurant, registerRestaurant, setRestaurant, setCustomer, logout }}
     >
       {children}
     </AuthContext.Provider>

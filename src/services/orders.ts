@@ -17,3 +17,9 @@ export async function getOrders(): Promise<Order[]> {
   const { data } = await api.get<Order[]>('/orders');
   return data;
 }
+
+// Customer token required; only while the order is Pending (409 otherwise).
+export async function cancelOrder(id: number): Promise<Order> {
+  const { data } = await api.post<Order>(`/orders/${id}/cancel`);
+  return data;
+}

@@ -8,6 +8,38 @@ export interface Restaurant {
   deliveryTimeMinutes: number;
   deliveryFee: number;
   isOpen: boolean;
+  profileImageUrl: string | null;
+  address: RestaurantAddress | null;
+}
+
+// Shared by restaurant and customer addresses.
+export interface RestaurantAddress {
+  street: string;
+  number: string;
+  complement: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+export type AddressRequest = Omit<RestaurantAddress, 'complement'> & { complement?: string | null };
+
+export interface CustomerAddress extends RestaurantAddress {
+  id: number;
+  label: string;
+  isPrimary: boolean;
+}
+
+export interface CustomerAddressRequest extends AddressRequest {
+  label: string;
+  isPrimary?: boolean;
+}
+
+export interface CustomerUpdateRequest {
+  name: string;
+  phone: string;
+  profileImageUrl?: string | null;
 }
 
 // What a restaurant sees about itself.
@@ -34,6 +66,8 @@ export interface RestaurantUpdateRequest {
   deliveryTimeMinutes: number;
   deliveryFee: number;
   isOpen: boolean;
+  // omitting it clears the image
+  profileImageUrl?: string | null;
 }
 
 export interface Product {
@@ -81,6 +115,7 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
+  profileImageUrl: string | null;
   createdAt: string;
 }
 
@@ -139,6 +174,8 @@ export interface Order {
   deliveryFee: number;
   total: number;
   createdAt: string;
+  // when the status last changed; equals createdAt for a new order
+  updatedAt: string;
   items: OrderItem[];
 }
 

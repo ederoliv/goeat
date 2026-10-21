@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { X, Trash2, Edit2, Ticket, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { createOrder } from '../services/orders';
+import { getAddresses } from '../services/auth';
+import { useRequest } from '../hooks/useRequest';
+import { formatAddress } from '../lib/address';
 import { getErrorMessage } from '../lib/errors';
 import { formatCurrency } from '../lib/format';
 import { fulfillmentLabels, paymentLabels } from '../lib/labels';
@@ -23,6 +26,14 @@ export function CartSidebar() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+
+  const { data: savedAddresses } = useRequest(async () => (customer ? getAddresses() : []), [customer?.id]);
+
+  // the primary saved address is the default delivery address
+  useEffect(() => {
+    const primary = savedAddresses?.find(a => a.isPrimary);
+    if (primary) setDeliveryAddress(current => current || formatAddress(primary));
+  }, [savedAddresses]);
 
   const isDelivery = fulfillmentType === 'Delivery';
   const deliveryFee = isDelivery ? store?.deliveryFee ?? 0 : 0;
@@ -182,6 +193,16 @@ export function CartSidebar() {
               </div>
 
               {isDelivery && (
+                <>
+                {!!savedAddresses?.length && (
+                  <select className={`${inputClass} mb-2`} value="" onChange={e => {
+                    const picked = savedAddresses.find(a => a.id === Number(e.target.value));
+                    if (picked) setDeliveryAddress(formatAddress(picked));
+                  }}>
+                    <option value="">Usar um endereço salvo...</option>
+                    {savedAddresses.map(a => <option key={a.id} value={a.id}>{a.label}{a.isPrimary ? " (principal)" : ""}</option>)}
+                  </select>
+                )}
                 <textarea
                   value={deliveryAddress}
                   onChange={e => setDeliveryAddress(e.target.value)}
@@ -190,6 +211,7 @@ export function CartSidebar() {
                   maxLength={300}
                   className={inputClass}
                 />
+                </>
               )}
 
               {!customer && (

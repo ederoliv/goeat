@@ -4,6 +4,7 @@ import { Search, ChevronDown, User, ShoppingBag, Star, MapPin, Store, Sandwich, 
 import { Footer } from '../components/Footer';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { Avatar } from '../components/Avatar';
 import { useRequest } from '../hooks/useRequest';
 import { getRestaurants } from '../services/restaurants';
 import { formatCurrency } from '../lib/format';
@@ -115,8 +116,10 @@ export function IndexPage() {
               </div>
             ) : customer ? (
               <div className="flex items-center gap-3 shrink-0">
-                <Link to="/orders" className="hover:text-green-100 transition-colors flex items-center gap-1" title="Meus pedidos">
-                  <User className="w-6 h-6" />
+                <Link to="/account" className="hover:text-green-100 transition-colors flex items-center gap-1" title="Minha conta">
+                  {customer.profileImageUrl
+                    ? <Avatar name={customer.name} imageUrl={customer.profileImageUrl} className="w-6 h-6 rounded-full" />
+                    : <User className="w-6 h-6" />}
                   <span className="hidden md:inline max-w-[120px] truncate">{customer.name.split(' ')[0]}</span>
                 </Link>
                 <button onClick={logout} className="hover:text-green-100 transition-colors">Sair</button>
@@ -191,9 +194,8 @@ export function IndexPage() {
                   params={{ restaurantId: String(restaurant.id) }}
                   className="bg-white rounded-lg p-4 flex gap-4 hover:shadow-md transition-shadow cursor-pointer relative"
                 >
-                  <div className="shrink-0 w-[84px] h-[84px] rounded-xl bg-[#19766D]/10 border border-gray-100 flex items-center justify-center text-3xl font-bold text-[#19766D]">
-                    {restaurant.name.charAt(0)}
-                  </div>
+                  <Avatar name={restaurant.name} imageUrl={restaurant.profileImageUrl}
+                    className="shrink-0 w-[84px] h-[84px] rounded-xl bg-[#19766D]/10 border border-gray-100 text-3xl text-[#19766D]" />
 
                   <div className="flex flex-col justify-center flex-1 min-w-0">
                     <h3 className="font-semibold text-[#4F4F4F] text-base mb-1 truncate" title={restaurant.name}>

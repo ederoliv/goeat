@@ -25,7 +25,9 @@ Frontend code written against the previous contract must be updated:
 | `Order` | New fields `trackingCode`, `customerName`, `customerPhone`, `fulfillmentType`, `paymentMethod`; `customerId` can be `null`; `deliveryAddress` can be `null`; `deliveryFee` is `0` for `Pickup` |
 | `GET /orders`, `GET /orders/{id}` | Require a **customer** token (a restaurant token gets `403`) |
 | Token claims | Tokens now carry a `role` claim (`customer` or `restaurant`). Decode it to know who is logged in |
+| `Order` | New field `updatedAt`. Status can now change: new `PATCH /restaurants/me/orders/{id}/status` and `POST /orders/{id}/cancel` |
 | `GET /customers/me` | Requires a **customer** token (a restaurant token gets `403`) |
+| `Restaurant`, `RestaurantAccount`, `Customer` | New fields `profileImageUrl` (string or `null`) on all three and `address` (object or `null`) on both restaurant views. `PUT /restaurants/me` accepts the new optional `profileImageUrl` (omitting it clears the image) |
 
 Unchanged: customer `POST /auth/register` and `POST /auth/login`, `GET /products/{id}`, `GET /restaurants...`.
 
@@ -77,10 +79,26 @@ Legend used below: 🔓 public, 🔒C requires a **customer** token, 🔒R requi
 | `deliveryTimeMinutes` | integer | Estimated delivery time |
 | `deliveryFee` | number | Delivery fee charged on `Delivery` orders |
 | `isOpen` | boolean | Whether the restaurant is accepting orders. Orders to a closed restaurant are rejected |
+| `profileImageUrl` | string \| null | Profile image URL, `null` when there is none |
+| `address` | RestaurantAddress \| null | Where the restaurant is located, `null` until the restaurant registers it |
 
 ```json
-{ "id": 1, "name": "Burger House", "cuisine": "Burgers", "rating": 4.7, "deliveryTimeMinutes": 30, "deliveryFee": 5.00, "isOpen": true }
+{ "id": 5, "name": "Restaurante Demo", "cuisine": "Burgers", "rating": 4.5, "deliveryTimeMinutes": 30, "deliveryFee": 5.00, "isOpen": true, "profileImageUrl": "https://picsum.photos/seed/restaurante-demo/300", "address": { "street": "Avenida Paulista", "number": "1000", "complement": "Loja 2", "neighborhood": "Bela Vista", "city": "São Paulo", "state": "SP", "zipCode": "01310-100" } }
 ```
+
+### RestaurantAddress
+
+A restaurant has **one** address at most.
+
+| Field | Type | Description |
+|---|---|---|
+| `street` | string | Street name |
+| `number` | string | Street number (string, e.g. `"S/N"`) |
+| `complement` | string | null | Suite, floor, etc. |
+| `neighborhood` | string | Neighborhood |
+| `city` | string | City |
+| `state` | string | 2-letter state code, upper-case |
+| `zipCode` | string | Postal code (CEP) |
 
 ### RestaurantAccount (what a restaurant sees about itself)
 
@@ -93,7 +111,7 @@ Same fields as `Restaurant`, plus:
 | `createdAt` | string (date-time) | Registration time |
 
 ```json
-{ "id": 7, "name": "Sabor Caseiro", "cuisine": "Brazilian", "rating": 0.0, "deliveryTimeMinutes": 40, "deliveryFee": 6, "isOpen": false, "email": "sabor.contract@example.com", "phone": "11933332222", "createdAt": "2026-10-20T06:24:23.374358+00:00" }
+{ "id": 7, "name": "Sabor Caseiro", "cuisine": "Brazilian", "rating": 0.0, "deliveryTimeMinutes": 40, "deliveryFee": 6, "isOpen": false, "profileImageUrl": null, "address": null, "email": "sabor.contract@example.com", "phone": "11933332222", "createdAt": "2026-10-20T06:24:23.374358+00:00" }
 ```
 
 The 4 demo restaurants (ids 1–4) have no account, so nobody can log in as them.
@@ -149,12 +167,28 @@ A restaurant's menu is the list of its sections (sorted by `sortOrder`), each wi
 | `name` | string | Full name |
 | `email` | string | Lower-case, unique |
 | `phone` | string | Phone number |
+| `profileImageUrl` | string \| null | Profile image URL, `null` when there is none |
 | `createdAt` | string (date-time) | Registration time |
 
 The password is never returned.
 
 ```json
-{ "id": 2, "name": "Maria Silva", "email": "maria.contract@example.com", "phone": "11988887777", "createdAt": "2026-10-20T06:04:50.8590228+00:00" }
+{ "id": 2, "name": "Maria Silva", "email": "maria.contract@example.com", "phone": "11988887777", "profileImageUrl": null, "createdAt": "2026-10-20T06:04:50.8590228+00:00" }
+```
+
+### CustomerAddress
+
+A customer can have several addresses; exactly one is the **primary** one (the first address created is primary automatically).
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Unique id |
+| `label` | string | Name chosen by the customer, e.g. `Home`, `Work` |
+| `street`, `number`, `complement`, `neighborhood`, `city`, `state`, `zipCode` | | Same as `RestaurantAddress` |
+| `isPrimary` | boolean | `true` for the primary address |
+
+```json
+{ "id": 1, "label": "Home", "street": "Rua das Flores", "number": "123", "complement": null, "neighborhood": "Centro", "city": "São Paulo", "state": "SP", "zipCode": "01001-000", "isPrimary": true }
 ```
 
 ### Order
@@ -167,7 +201,7 @@ The password is never returned.
 | `customerName` | string | Who ordered (guest-provided, or the account name) |
 | `customerPhone` | string | Contact phone (guest-provided, or the account phone) |
 | `restaurantId` | integer | `Restaurant.id` |
-| `status` | string | One of `Pending`, `Confirmed`, `Preparing`, `OutForDelivery`, `Delivered`, `Cancelled`. New orders are `Pending`; there is no endpoint to change the status yet |
+| `status` | string | One of `Pending`, `Confirmed`, `Preparing`, `OutForDelivery`, `Delivered`, `Cancelled`. New orders are `Pending`. See [Order status flow](#order-status-flow) |
 | `fulfillmentType` | string | `Delivery` (delivered to `deliveryAddress`) or `Pickup` (customer collects at the restaurant) |
 | `paymentMethod` | string | `Cash`, `CreditCard`, `DebitCard` or `Pix`. It only records how the customer intends to pay; **the API does not process or charge payments**, the customer pays on delivery/pickup |
 | `deliveryAddress` | string \| null | Delivery address. `null` for `Pickup` |
@@ -175,6 +209,7 @@ The password is never returned.
 | `deliveryFee` | number | Restaurant fee for `Delivery`; always `0` for `Pickup` |
 | `total` | number | `subtotal + deliveryFee` |
 | `createdAt` | string (date-time) | Creation time |
+| `updatedAt` | string (date-time) | When the status last changed. Equals `createdAt` for a new order |
 | `items[]` | array | See below |
 
 `items[]` entries are snapshots taken when the order was placed, so later price, name or deletion of a product does not change old orders:
@@ -300,10 +335,27 @@ Replace the profile. Send all fields.
 | `deliveryTimeMinutes` | integer | yes | 1–240 |
 | `deliveryFee` | number | yes | 0–1000 |
 | `isOpen` | boolean | yes | `true` = accepting orders |
+| `profileImageUrl` | string | no | Valid URL, up to 500 characters. Omitted or empty clears the image |
 
 The email cannot be changed here.
 
 - `200` → `RestaurantAccount`
+- `400` / `401` / `403`
+
+#### 🔒R `PUT /api/v1/restaurants/me/address`
+Create or replace the restaurant's only address. It then shows up in `address` on `GET /restaurants` and `GET /restaurants/{id}`.
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `street` | string | yes | 2–150 characters |
+| `number` | string | yes | Up to 20 characters |
+| `complement` | string | no | Up to 100 characters |
+| `neighborhood` | string | yes | 2–100 characters |
+| `city` | string | yes | 2–100 characters |
+| `state` | string | yes | Exactly 2 letters (stored upper-case) |
+| `zipCode` | string | yes | 8–10 characters |
+
+- `200` → `RestaurantAddress`
 - `400` / `401` / `403`
 
 ### Menu management (🔒R, own restaurant only)
@@ -409,6 +461,55 @@ Replace the product. Same body and rules as create (send all fields). Use `isAva
 - `200` → `Customer`
 - `401` / `403`
 
+#### 🔒C `PUT /api/v1/customers/me`
+Replace the profile. Send all fields. Email cannot be changed here.
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `name` | string | yes | 2–150 characters |
+| `phone` | string | yes | 8–30 characters |
+| `profileImageUrl` | string | no | Valid URL, up to 500 characters. Omitted or empty clears the image |
+
+- `200` → `Customer`
+- `400` / `401` / `403`
+
+#### 🔒C `GET /api/v1/customers/me/addresses`
+The customer's addresses, primary first.
+
+- `200` → `CustomerAddress[]`
+- `401` / `403`
+
+#### 🔒C `POST /api/v1/customers/me/addresses`
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `label` | string | yes | 1–50 characters |
+| `street` | string | yes | 2–150 characters |
+| `number` | string | yes | Up to 20 characters |
+| `complement` | string | no | Up to 100 characters |
+| `neighborhood` | string | yes | 2–100 characters |
+| `city` | string | yes | 2–100 characters |
+| `state` | string | yes | Exactly 2 letters (stored upper-case) |
+| `zipCode` | string | yes | 8–10 characters |
+| `isPrimary` | boolean | no | `true` makes it the primary address (the previous one stops being primary). The first address is always primary |
+
+- `201` → `CustomerAddress`
+- `400` / `401` / `403`
+
+#### 🔒C `PUT /api/v1/customers/me/addresses/{id}`
+Same body as `POST`. `isPrimary: true` moves the primary flag to this address; `false` on the current primary is ignored (promote another address instead).
+
+- `200` → `CustomerAddress`
+- `400` / `401` / `403`
+- `404` → no such address for this customer
+
+#### 🔒C `DELETE /api/v1/customers/me/addresses/{id}`
+Deleting the primary address promotes the oldest remaining one.
+
+- `204`
+- `401` / `403`
+- `404` → no such address for this customer
+
 ### Orders
 
 #### 🔓 `POST /api/v1/orders`
@@ -476,6 +577,14 @@ The logged-in customer's own orders (guest orders are not included), newest firs
 - `401` / `403`
 - `404` → no such order for this customer (another customer's order is also `404`)
 
+#### 🔒C `POST /api/v1/orders/{id}/cancel`
+Cancel one of the customer's own orders. No body.
+
+- `200` → `Order` with `status: "Cancelled"`
+- `401` / `403`
+- `404` → no such order for this customer
+- `409` → the order is no longer `Pending`
+
 ### Orders received by a restaurant
 
 #### 🔒R `GET /api/v1/restaurants/me/orders`
@@ -493,13 +602,36 @@ Orders placed at the logged-in restaurant (guest and customer orders), newest fi
 - `401` / `403`
 - `404` → no such order for this restaurant
 
-### Placeholders (not final)
+#### 🔒R `PATCH /api/v1/restaurants/me/orders/{id}/status`
+Move the order to the next status (see [Order status flow](#order-status-flow)).
 
-Returns a fixed message and will change. Do not build UI against it yet.
+```json
+{ "status": "Confirmed" }
+```
 
-| Method | Path | `200` response |
-|---|---|---|
-| `GET` | `/api/v1/address` | `{ "message": "Address information retrieved successfully." }` |
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `status` | string | yes | One of the `status` values |
+
+- `200` → `Order` (with the new `status` and `updatedAt`)
+- `400` → missing or unknown `status`
+- `401` / `403`
+- `404` → no such order for this restaurant
+- `409` → that change is not allowed from the current status (e.g. `Pending` → `Delivered`, or anything after `Delivered` / `Cancelled`)
+
+### Order status flow
+
+```
+Pending → Confirmed → Preparing → OutForDelivery → Delivered      (Delivery)
+Pending → Confirmed → Preparing ───────────────────→ Delivered      (Pickup)
+```
+
+| Who | Allowed |
+|---|---|
+| Restaurant | Each step above, one at a time. `OutForDelivery` only for `Delivery` orders; `Preparing` → `Delivered` only for `Pickup` orders. It can set `Cancelled` while the order is `Pending`, `Confirmed` or `Preparing` |
+| Customer | `Cancelled`, only while the order is `Pending` (`POST /orders/{id}/cancel`) |
+
+`Delivered` and `Cancelled` are final. There is no push channel yet: poll `GET /orders/{id}` or `GET /orders/track/{trackingCode}` to follow the status.
 
 ## Errors
 
@@ -574,6 +706,7 @@ erDiagram
     MENU_SECTION ||--o{ PRODUCT : "lists"
     RESTAURANT ||--o{ PRODUCT : "sells"
     CUSTOMER |o--o{ ORDER : "places (optional)"
+    CUSTOMER ||--o{ CUSTOMER_ADDRESS : "has"
     RESTAURANT ||--o{ ORDER : "receives"
     ORDER ||--|{ ORDER_ITEM : "contains"
     PRODUCT ||--o{ ORDER_ITEM : "ordered as"
@@ -585,6 +718,8 @@ erDiagram
         int deliveryTimeMinutes
         number deliveryFee
         bool isOpen
+        string profileImageUrl
+        string address "one, optional"
     }
     MENU_SECTION {
         int id
@@ -607,6 +742,7 @@ erDiagram
         string name
         string email
         string phone
+        string profileImageUrl
         datetime createdAt
     }
     ORDER {
@@ -624,6 +760,14 @@ erDiagram
         number deliveryFee
         number total
         datetime createdAt
+        datetime updatedAt
+    }
+    CUSTOMER_ADDRESS {
+        int id
+        string label
+        string street
+        string city
+        bool isPrimary
     }
     ORDER_ITEM {
         int productId
@@ -646,6 +790,7 @@ POST   /api/v1/auth/restaurants/register                          -> RestaurantA
 POST   /api/v1/auth/restaurants/login                             -> { accessToken, tokenType, expiresAt, restaurant }
 GET    /api/v1/restaurants/me                              🔒R    -> RestaurantAccount
 PUT    /api/v1/restaurants/me                              🔒R    -> RestaurantAccount
+PUT    /api/v1/restaurants/me/address                      🔒R    -> RestaurantAddress
 POST   /api/v1/restaurants/{rid}/menu/sections             🔒R    -> MenuSection (201)
 PUT    /api/v1/restaurants/{rid}/menu/sections/{sid}       🔒R    -> MenuSection
 DELETE /api/v1/restaurants/{rid}/menu/sections/{sid}       🔒R    -> 204
@@ -654,17 +799,24 @@ PUT    /api/v1/restaurants/{rid}/products/{pid}            🔒R    -> Product
 DELETE /api/v1/restaurants/{rid}/products/{pid}            🔒R    -> 204
 GET    /api/v1/restaurants/me/orders[?status=]             🔒R    -> Order[]
 GET    /api/v1/restaurants/me/orders/{id}                  🔒R    -> Order
+PATCH  /api/v1/restaurants/me/orders/{id}/status           🔒R    -> Order
 
 CUSTOMER ACCOUNT
 POST   /api/v1/auth/register                                      -> Customer (201)
 POST   /api/v1/auth/login                                         -> { accessToken, tokenType, expiresAt, customer }
 GET    /api/v1/customers/me                                🔒C    -> Customer
+PUT    /api/v1/customers/me                                🔒C    -> Customer
+GET    /api/v1/customers/me/addresses                      🔒C    -> CustomerAddress[]
+POST   /api/v1/customers/me/addresses                      🔒C    -> CustomerAddress (201)
+PUT    /api/v1/customers/me/addresses/{id}                 🔒C    -> CustomerAddress
+DELETE /api/v1/customers/me/addresses/{id}                 🔒C    -> 204
 
 ORDERS
 POST   /api/v1/orders                                      🔓 (token optional) -> Order (201)
 GET    /api/v1/orders/track/{trackingCode}                 🔓     -> Order
 GET    /api/v1/orders                                      🔒C    -> Order[]
 GET    /api/v1/orders/{id}                                 🔒C    -> Order
+POST   /api/v1/orders/{id}/cancel                          🔒C    -> Order
 ```
 
 ## Change policy

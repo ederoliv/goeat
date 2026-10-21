@@ -10,10 +10,106 @@
     }
   ],
   "paths": {
-    "/api/v1/address": {
+    "/api/v1/customers/me/addresses": {
       "get": {
         "tags": [
-          "Address"
+          "CustomerAddresses"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "CustomerAddresses"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/customers/me/addresses/{id}": {
+      "put": {
+        "tags": [
+          "CustomerAddresses"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAddressRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CustomerAddresses"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -27,6 +123,36 @@
         "tags": [
           "Customers"
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Customers"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -501,6 +627,30 @@
         }
       }
     },
+    "/api/v1/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/orders/track/{trackingCode}": {
       "get": {
         "tags": [
@@ -561,6 +711,50 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/restaurants/me/orders/{id}/status": {
+      "patch": {
+        "tags": [
+          "RestaurantOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -643,6 +837,38 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateRestaurantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/restaurants/me/address": {
+      "put": {
+        "tags": [
+          "RestaurantAccount"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantAddressRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantAddressRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantAddressRequest"
               }
             }
           },
@@ -818,6 +1044,66 @@
             "items": {
               "$ref": "#/components/schemas/CreateOrderItemRequest"
             }
+          }
+        }
+      },
+      "CustomerAddressRequest": {
+        "required": [
+          "label",
+          "street",
+          "number",
+          "neighborhood",
+          "city",
+          "state",
+          "zipCode"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "street": {
+            "maxLength": 150,
+            "minLength": 2,
+            "type": "string"
+          },
+          "number": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "complement": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "neighborhood": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "state": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string"
+          },
+          "zipCode": {
+            "maxLength": 10,
+            "minLength": 8,
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
           }
         }
       },
@@ -1023,6 +1309,103 @@
           }
         }
       },
+      "RestaurantAddressRequest": {
+        "required": [
+          "street",
+          "number",
+          "neighborhood",
+          "city",
+          "state",
+          "zipCode"
+        ],
+        "type": "object",
+        "properties": {
+          "street": {
+            "maxLength": 150,
+            "minLength": 2,
+            "type": "string"
+          },
+          "number": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "complement": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "neighborhood": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "state": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string"
+          },
+          "zipCode": {
+            "maxLength": 10,
+            "minLength": 8,
+            "type": "string"
+          }
+        }
+      },
+      "UpdateCustomerRequest": {
+        "required": [
+          "name",
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 150,
+            "minLength": 2,
+            "type": "string"
+          },
+          "phone": {
+            "maxLength": 30,
+            "minLength": 8,
+            "type": "string"
+          },
+          "profileImageUrl": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
+          }
+        }
+      },
+      "UpdateOrderStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          }
+        }
+      },
       "UpdateRestaurantRequest": {
         "required": [
           "name",
@@ -1068,6 +1451,15 @@
           },
           "isOpen": {
             "type": "boolean"
+          },
+          "profileImageUrl": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
           }
         }
       }
@@ -1075,7 +1467,7 @@
   },
   "tags": [
     {
-      "name": "Address"
+      "name": "CustomerAddresses"
     },
     {
       "name": "Customers"

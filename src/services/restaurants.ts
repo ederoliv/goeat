@@ -3,7 +3,7 @@ import { api } from '../config/api';
 import type {
   Menu, MenuSectionInfo, MenuSectionRequest, Order, OrderStatus, Product, ProductRequest,
   Restaurant, RestaurantAccount, RestaurantLoginResponse, RestaurantRegisterRequest, RestaurantUpdateRequest,
-  LoginRequest,
+  LoginRequest, AddressRequest, RestaurantAddress,
 } from '../types/api';
 
 // ---- public browsing ----
@@ -51,6 +51,11 @@ export async function updateMyRestaurant(body: RestaurantUpdateRequest): Promise
   return data;
 }
 
+export async function saveMyAddress(body: AddressRequest): Promise<RestaurantAddress> {
+  const { data } = await api.put<RestaurantAddress>('/restaurants/me/address', body);
+  return data;
+}
+
 // ---- menu management (own restaurant only) ----
 
 export async function createSection(restaurantId: number, body: MenuSectionRequest): Promise<MenuSectionInfo> {
@@ -85,5 +90,11 @@ export async function deleteProduct(restaurantId: number, productId: number): Pr
 
 export async function getReceivedOrders(status?: OrderStatus): Promise<Order[]> {
   const { data } = await api.get<Order[]>('/restaurants/me/orders', { params: { status } });
+  return data;
+}
+
+// 409 when the change is not allowed from the current status (see lib/orderFlow).
+export async function updateOrderStatus(id: number, status: OrderStatus): Promise<Order> {
+  const { data } = await api.patch<Order>(`/restaurants/me/orders/${id}/status`, { status });
   return data;
 }

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Footer } from '../components/Footer';
 import { OrderCard } from '../components/OrderCard';
+import { CancelOrderButton } from '../components/CancelOrderButton';
 import { useAuth } from '../context/AuthContext';
 import { useRequest } from '../hooks/useRequest';
 import { getRestaurants } from '../services/restaurants';
@@ -8,9 +10,10 @@ import { getOrders } from '../services/orders';
 
 export function OrdersPage() {
   const { customer, loading: loadingAuth } = useAuth();
+  const [version, setVersion] = useState(0);
   const { data: orders, loading, error } = useRequest(
     async () => (customer ? getOrders() : []),
-    [customer?.id],
+    [customer?.id, version],
   );
   const { data: restaurants } = useRequest(() => getRestaurants(), []);
   const restaurantName = (id: number) => restaurants?.find(r => r.id === id)?.name ?? `Restaurante #${id}`;
@@ -39,7 +42,8 @@ export function OrdersPage() {
         <div className="space-y-4">
           {orders?.map(order => (
             <div key={order.id}>
-              <OrderCard order={order} title={restaurantName(order.restaurantId)} />
+              <OrderCard order={order} title={restaurantName(order.restaurantId)}
+                actions={<CancelOrderButton order={order} onCancelled={() => setVersion(v => v + 1)} />} />
               <Link to="/track/$trackingCode" params={{ trackingCode: order.trackingCode }}
                 className="text-xs font-medium text-[#19766D] hover:underline">
                 Acompanhar pedido

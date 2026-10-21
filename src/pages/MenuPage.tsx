@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { Search, Clock, Star, ShoppingBag } from 'lucide-react';
+import { Search, Clock, Star, ShoppingBag, MapPin } from 'lucide-react';
 import type { Product } from '../types/api';
 import { Footer } from '../components/Footer';
+import { Avatar } from '../components/Avatar';
+import { formatAddress } from '../lib/address';
 import { ProductModal } from '../components/ProductModal';
 import { useCart } from '../context/CartContext';
 import { useRequest } from '../hooks/useRequest';
@@ -56,12 +58,11 @@ export function MenuPage() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start px-4 sm:px-8 mt-10 relative gap-4">
 
           {/* Logo do Restaurante (inicial, enquanto a API não fornece imagem) */}
-          <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 sm:border-[6px] border-white bg-[#A1EE30] shadow-md shrink-0 flex items-center justify-center text-5xl font-extrabold text-[#19766D]">
-            {restaurant.name.charAt(0)}
-          </div>
+          <Avatar name={restaurant.name} imageUrl={restaurant.profileImageUrl}
+            className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 sm:border-[6px] border-white bg-[#A1EE30] shadow-md shrink-0 text-5xl font-extrabold text-[#19766D]" />
 
           {/* Dados (Nome, Avaliação, Entrega) */}
-          <div className="pt-2 sm:pt-24 pb-4 flex-1 text-center sm:text-left">
+          <div className="pt-2 sm:pt-32 pb-4 flex-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-1.5">
               <h1 className="text-2xl sm:text-[26px] font-extrabold text-[#4F4F4F]">{restaurant.name}</h1>
               <span className="flex items-center text-amber-500 font-bold text-sm sm:text-base">
@@ -82,6 +83,11 @@ export function MenuPage() {
               <span>•</span>
               <span>{restaurant.deliveryFee === 0 ? 'Entrega grátis' : `Entrega ${formatCurrency(restaurant.deliveryFee)}`}</span>
             </div>
+            {restaurant.address && (
+              <p className="flex items-center justify-center sm:justify-start gap-1 mt-1.5 text-sm text-[#4F4F4F]/70">
+                <MapPin className="w-4 h-4 shrink-0" /> {formatAddress(restaurant.address)}
+              </p>
+            )}
           </div>
         </div>
 
