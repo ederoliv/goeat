@@ -8,8 +8,14 @@ import type {
 
 // ---- public browsing ----
 
-export async function getRestaurants(cuisine?: string): Promise<Restaurant[]> {
-  const { data } = await api.get<Restaurant[]>('/restaurants', { params: { cuisine } });
+export async function getRestaurants(params?: { cuisine?: string; city?: string }): Promise<Restaurant[]> {
+  const { data } = await api.get<Restaurant[]>('/restaurants', { params });
+  return data;
+}
+
+// Cities that have at least one restaurant.
+export async function getRestaurantCities(): Promise<string[]> {
+  const { data } = await api.get<string[]>('/restaurants/cities');
   return data;
 }
 

@@ -253,8 +253,13 @@ A customer can have several addresses; exactly one is the **primary** one (the f
 | Query param | Type | Required | Description |
 |---|---|---|---|
 | `cuisine` | string | no | Case-insensitive exact match on `cuisine` |
+| `city` | string | no | Case-insensitive exact match on `address.city`. Restaurants without an address never match |
 
 - `200` → `Restaurant[]` (`[]` if none). Includes closed restaurants (`isOpen: false`).
+
+#### 🔓 `GET /api/v1/restaurants/cities`
+Cities that have at least one restaurant, to let the user pick a city manually.
+- `200` → `string[]`, distinct and sorted alphabetically (`[]` if none). Values are valid for the `city` param above.
 
 #### 🔓 `GET /api/v1/restaurants/{id}`
 - `200` → `Restaurant`

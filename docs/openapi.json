@@ -774,7 +774,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/restaurants/cities": {
+      "get": {
+        "tags": [
+          "Restaurant"
         ],
         "responses": {
           "200": {

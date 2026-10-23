@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Search, ChevronDown, User, ShoppingBag, Star, MapPin, Store, Sandwich, Pizza, Fish, UtensilsCrossed } from 'lucide-react';
+import { Search, ChevronDown, User, ShoppingBag, Star, Store, Sandwich, Pizza, Fish, UtensilsCrossed } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,8 @@ import { Avatar } from '../components/Avatar';
 import { useRequest } from '../hooks/useRequest';
 import { getRestaurants } from '../services/restaurants';
 import { formatCurrency } from '../lib/format';
+import { useUserCity } from '../hooks/useUserCity';
+import { CitySelector } from '../components/CitySelector';
 
 const cuisineIcons: Record<string, React.ElementType> = {
   Burgers: Sandwich,
@@ -16,12 +18,15 @@ const cuisineIcons: Record<string, React.ElementType> = {
 };
 
 export function IndexPage() {
-  const [address, setAddress] = useState<string>("Buscando localização...");
   const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const { items, setIsCartOpen } = useCart();
   const { customer, restaurant, logout } = useAuth();
-  const { data: restaurants, loading, error } = useRequest(() => getRestaurants(), []);
+  const { city, status, selectCity, useMyLocation } = useUserCity();
+  const { data: restaurants, loading, error } = useRequest(
+    () => (city ? getRestaurants({ city }) : Promise.resolve([])),
+    [city],
+  );
 
   const cuisines = useMemo(
     () => Array.from(new Set((restaurants ?? []).map(r => r.cuisine))),
@@ -35,36 +40,6 @@ export function IndexPage() {
       (!term || r.name.toLowerCase().includes(term) || r.cuisine.toLowerCase().includes(term)),
     );
   }, [restaurants, selectedCuisine, search]);
-
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-            const data = await res.json();
-            if (data && data.address) {
-              const city = data.address.city || data.address.town || data.address.village || data.address.municipality || "Cidade não encontrada";
-              setAddress(city);
-            } else {
-              setAddress("Endereço não encontrado");
-            }
-          } catch (error) {
-            setAddress("Erro ao buscar endereço");
-          }
-        },
-        (error) => {
-          console.error("Error getting location: ", error);
-          setAddress("Localização não permitida");
-        }
-      );
-    } else {
-      setAddress("Geolocalização não suportada");
-    }
-  }, []);
-
-
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -100,11 +75,13 @@ export function IndexPage() {
           </div>
 
           <div className="flex items-center gap-6 text-sm font-medium">
-            <button className="flex items-center gap-1 hover:text-green-100 transition-colors max-w-[200px] truncate">
-              <MapPin className="w-4 h-4 hidden sm:block shrink-0" />
-              <span className="truncate">{address}</span>
-              <ChevronDown className="w-4 h-4 shrink-0" />
-            </button>
+            <CitySelector
+              city={city}
+              status={status}
+              onSelect={selectCity}
+              onUseMyLocation={useMyLocation}
+              forceOpen={status === 'unavailable'}
+            />
 
             {restaurant ? (
               <div className="flex items-center gap-3 shrink-0">
@@ -180,10 +157,13 @@ export function IndexPage() {
           <div className="max-w-[1280px] mx-auto">
             <h2 className="text-xl font-bold text-[#4F4F4F] mb-6">Lojas</h2>
 
-            {loading && <p className="text-[#4F4F4F]/70">Carregando restaurantes...</p>}
+            {status === 'unavailable' && !city && (
+              <p className="text-[#4F4F4F]/70">Selecione sua cidade no topo da página para ver os restaurantes disponíveis.</p>
+            )}
+            {(loading || status === 'detecting') && <p className="text-[#4F4F4F]/70">Carregando restaurantes...</p>}
             {!!error && <p className="text-red-500">Não foi possível carregar os restaurantes. Tente novamente mais tarde.</p>}
-            {!loading && !error && visibleRestaurants.length === 0 && (
-              <p className="text-[#4F4F4F]/70">Nenhum restaurante encontrado.</p>
+            {!loading && !error && !!city && visibleRestaurants.length === 0 && (
+              <p className="text-[#4F4F4F]/70">Nenhum restaurante encontrado em {city}.</p>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
